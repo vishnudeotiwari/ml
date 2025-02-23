@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realistic HTML Piano</title>
+    <style>
+        body {
+            background: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .piano-container {
+            background: linear-gradient(to bottom, #1a1a1a, #2d2d2d);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .piano {
+            display: flex;
+            position: relative;
+        }
+        .key {
+            width: 60px;
+            height: 200px;
+            background: linear-gradient(to bottom, #fff, #f0f0f0);
+            border: 1px solid #666;
+            border-bottom: none;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.1s;
+            position: relative;
+            z-index: 1;
+        }
+        .key.black {
+            width: 40px;
+            height: 130px;
+            background: linear-gradient(to bottom, #333, #000);
+            margin: 0 -20px;
+            z-index: 2;
+            border: none;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .key:active {
+            transform: translateY(2px);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            background: linear-gradient(to bottom, #ddd, #ccc);
+        }
+        .black.key:active {
+            background: linear-gradient(to bottom, #444, #222);
+        }
+        .key-label {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            color: #666;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+        .black .key-label {
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="piano-container">
+        <div class="piano">
+            <div class="key" data-note="C4"><span class="key-label">C</span></div>
+            <div class="key black" data-note="C#4"><span class="key-label">C#</span></div>
+            <div class="key" data-note="D4"><span class="key-label">D</span></div>
+            <div class="key black" data-note="D#4"><span class="key-label">D#</span></div>
+            <div class="key" data-note="E4"><span class="key-label">E</span></div>
+            <div class="key" data-note="F4"><span class="key-label">F</span></div>
+            <div class="key black" data-note="F#4"><span class="key-label">F#</span></div>
+            <div class="key" data-note="G4"><span class="key-label">G</span></div>
+            <div class="key black" data-note="G#4"><span class="key-label">G#</span></div>
+            <div class="key" data-note="A4"><span class="key-label">A</span></div>
+            <div class="key black" data-note="A#4"><span class="key-label">A#</span></div>
+            <div class="key" data-note="B4"><span class="key-label">B</span></div>
+        </div>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const frequencies = {
+            'C4': 261.63,
+            'C#4': 277.18,
+            'D4': 293.66,
+            'D#4': 311.13,
+            'E4': 329.63,
+            'F4': 349.23,
+            'F#4': 369.99,
+            'G4': 392.00,
+            'G#4': 415.30,
+            'A4': 440.00,
+            'A#4': 466.16,
+            'B4': 493.88
+        };
+
+        function playNote(frequency) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'triangle'; // More piano-like than sine
+            oscillator.frequency.value = frequency;
+            
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.5);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 1.5);
+        }
+
+        const keys = document.querySelectorAll('.key');
+        keys.forEach(key => {
+            key.addEventListener('mousedown', () => {
+                const note = key.getAttribute('data-note');
+                playNote(frequencies[note]);
+            });
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            const keyMap = {
+                'a': 'C4', 'w': 'C#4', 's': 'D4', 'e': 'D#4', 'd': 'E4',
+                'f': 'F4', 't': 'F#4', 'g': 'G4', 'y': 'G#4', 'h': 'A4',
+                'u': 'A#4', 'j': 'B4'
+            };
+            if (keyMap[e.key]) {
+                playNote(frequencies[keyMap[e.key]]);
+                const keyElement = document.querySelector(`[data-note="${keyMap[e.key]}"]`);
+                keyElement.classList.add('active');
+                setTimeout(() => keyElement.classList.remove('active'), 100);
+            }
+        });
+    </script>
+</body>
+</html>
